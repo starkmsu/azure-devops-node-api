@@ -354,7 +354,7 @@ export interface CardFieldSettings {
      */
     showId?: boolean;
     /**
-     * Flag indicating whether to show show parent field on cards
+     * Flag indicating whether to show parent field on cards
      */
     showParent?: boolean;
     /**
@@ -655,6 +655,10 @@ export interface Plan {
      * Id of the plan
      */
     id?: string;
+    /**
+     * Date when the plan was last accessed. Default is null.
+     */
+    lastAccessed?: Date;
     /**
      * Identity that last modified this plan. Defaults to null for records before upgrading to ScaledAgileViewComponent4.
      */
@@ -1644,6 +1648,9 @@ TypeInfo.Marker.fields = {
 
 TypeInfo.Plan.fields = {
     createdDate: {
+        isDate: true,
+    },
+    lastAccessed: {
         isDate: true,
     },
     modifiedDate: {

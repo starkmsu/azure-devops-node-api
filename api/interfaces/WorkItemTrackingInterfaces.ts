@@ -1027,6 +1027,26 @@ export enum TemplateType {
 }
 
 /**
+ * Describes a request to create a temporary query
+ */
+export interface TemporaryQueryRequestModel extends WorkItemTrackingResource {
+    /**
+     * The WIQL text of the temporary query
+     */
+    wiql?: string;
+}
+
+/**
+ * The result of a temporary query creation.
+ */
+export interface TemporaryQueryResponseModel {
+    /**
+     * The id of the temporary query item.
+     */
+    id?: string;
+}
+
+/**
  * Types of tree node structures.
  */
 export enum TreeNodeStructureType {
@@ -1254,6 +1274,34 @@ export interface WorkItemDelete extends WorkItemDeleteReference {
      * The work item object that was deleted.
      */
     resource?: WorkItem;
+}
+
+/**
+ * Describes response to delete a set of work items.
+ */
+export interface WorkItemDeleteBatch {
+    /**
+     * List of results for each work item
+     */
+    results?: WorkItemDelete[];
+}
+
+/**
+ * Describes a request to delete a set of work items
+ */
+export interface WorkItemDeleteBatchRequest {
+    /**
+     * Optional parameter, if set to true, the work item is deleted permanently. Please note: the destroy action is PERMANENT and cannot be undone.
+     */
+    destroy?: boolean;
+    /**
+     * The requested work item ids
+     */
+    ids?: number[];
+    /**
+     * Optional parameter, if set to true, notifications will be disabled.
+     */
+    skipNotifications?: boolean;
 }
 
 /**
@@ -1702,6 +1750,7 @@ export interface WorkItemStateTransition {
 
 export interface WorkItemTagDefinition {
     id?: string;
+    lastUpdated?: Date;
     name?: string;
     url?: string;
 }
@@ -1872,6 +1921,20 @@ export interface WorkItemTypeColorAndIcon {
      * The name of the work item type.
      */
     workItemTypeName?: string;
+}
+
+/**
+ * Describes the list of allowed values of the field.
+ */
+export interface WorkItemTypeFieldAlowedValues {
+    /**
+     * The list of field allowed values.
+     */
+    allowedValues?: string[];
+    /**
+     * Name of the field.
+     */
+    fieldName?: string;
 }
 
 /**
@@ -2254,6 +2317,8 @@ export var TypeInfo = {
             "restored": 3
         }
     },
+    WorkItemTagDefinition: <any>{
+    },
     WorkItemTypeFieldsExpandLevel: {
         enumValues: {
             "none": 0,
@@ -2492,6 +2557,12 @@ TypeInfo.WorkItemQueryResult.fields = {
     },
     queryType: {
         enumType: TypeInfo.QueryType
+    }
+};
+
+TypeInfo.WorkItemTagDefinition.fields = {
+    lastUpdated: {
+        isDate: true,
     }
 };
 

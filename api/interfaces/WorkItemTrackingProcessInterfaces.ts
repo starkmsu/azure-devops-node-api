@@ -527,7 +527,7 @@ export interface ProcessBehavior {
      */
     color?: string;
     /**
-     * Indicates the type of customization on this work item. System behaviors are inherited from parent process but not modified. Inherited behaviors are modified modified behaviors that were inherited from parent process. Custom behaviors are behaviors created by user in current process.
+     * Indicates the type of customization on this work item. System behaviors are inherited from parent process but not modified. Inherited behaviors are modified behaviors that were inherited from parent process. Custom behaviors are behaviors created by user in current process.
      */
     customization?: CustomizationType;
     /**

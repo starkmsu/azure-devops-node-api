@@ -75,9 +75,11 @@ export interface IWorkItemTrackingApi extends basem.ClientApiBase {
     deleteTemplate(teamContext: TfsCoreInterfaces.TeamContext, templateId: string): Promise<void>;
     getTemplate(teamContext: TfsCoreInterfaces.TeamContext, templateId: string): Promise<WorkItemTrackingInterfaces.WorkItemTemplate>;
     replaceTemplate(templateContent: WorkItemTrackingInterfaces.WorkItemTemplate, teamContext: TfsCoreInterfaces.TeamContext, templateId: string): Promise<WorkItemTrackingInterfaces.WorkItemTemplate>;
+    createTempQuery(postedQuery: WorkItemTrackingInterfaces.TemporaryQueryRequestModel, project: string): Promise<WorkItemTrackingInterfaces.TemporaryQueryResponseModel>;
     getUpdate(id: number, updateNumber: number, project?: string): Promise<WorkItemTrackingInterfaces.WorkItemUpdate>;
     getUpdates(id: number, top?: number, skip?: number, project?: string): Promise<WorkItemTrackingInterfaces.WorkItemUpdate[]>;
     queryByWiql(wiql: WorkItemTrackingInterfaces.Wiql, teamContext?: TfsCoreInterfaces.TeamContext, timePrecision?: boolean, top?: number): Promise<WorkItemTrackingInterfaces.WorkItemQueryResult>;
+    getQueryResultCount(id: string, teamContext?: TfsCoreInterfaces.TeamContext, timePrecision?: boolean, top?: number): Promise<number>;
     queryById(id: string, teamContext?: TfsCoreInterfaces.TeamContext, timePrecision?: boolean, top?: number): Promise<WorkItemTrackingInterfaces.WorkItemQueryResult>;
     getWorkItemIconJson(icon: string, color?: string, v?: number): Promise<WorkItemTrackingInterfaces.WorkItemIcon>;
     getWorkItemIcons(): Promise<WorkItemTrackingInterfaces.WorkItemIcon[]>;
@@ -96,12 +98,14 @@ export interface IWorkItemTrackingApi extends basem.ClientApiBase {
     getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: WorkItemTrackingInterfaces.WorkItemExpand, errorPolicy?: WorkItemTrackingInterfaces.WorkItemErrorPolicy, project?: string): Promise<WorkItemTrackingInterfaces.WorkItem[]>;
     updateWorkItem(customHeaders: any, document: VSSInterfaces.JsonPatchDocument, id: number, project?: string, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean, expand?: WorkItemTrackingInterfaces.WorkItemExpand): Promise<WorkItemTrackingInterfaces.WorkItem>;
     getWorkItemsBatch(workItemGetRequest: WorkItemTrackingInterfaces.WorkItemBatchGetRequest, project?: string): Promise<WorkItemTrackingInterfaces.WorkItem[]>;
+    deleteWorkItems(deleteRequest: WorkItemTrackingInterfaces.WorkItemDeleteBatchRequest, project?: string): Promise<WorkItemTrackingInterfaces.WorkItemDeleteBatch>;
     getWorkItemStateColors(projectNames: string[]): Promise<WorkItemTrackingInterfaces.ProjectWorkItemStateColors[]>;
     getWorkItemNextStatesOnCheckinAction(ids: number[], action?: string): Promise<WorkItemTrackingInterfaces.WorkItemNextStateOnTransition[]>;
     getWorkItemTypeCategories(project: string): Promise<WorkItemTrackingInterfaces.WorkItemTypeCategory[]>;
     getWorkItemTypeCategory(project: string, category: string): Promise<WorkItemTrackingInterfaces.WorkItemTypeCategory>;
     getWorkItemTypeColors(projectNames: string[]): Promise<{ key: string; value: WorkItemTrackingInterfaces.WorkItemTypeColor[] }[]>;
     getWorkItemTypeColorAndIcons(projectNames: string[]): Promise<{ key: string; value: WorkItemTrackingInterfaces.WorkItemTypeColorAndIcon[] }[]>;
+    getWorkItemTypeFieldsAllowedValues(project: string): Promise<WorkItemTrackingInterfaces.WorkItemTypeFieldAlowedValues[]>;
     getWorkItemType(project: string, type: string): Promise<WorkItemTrackingInterfaces.WorkItemType>;
     getWorkItemTypes(project: string): Promise<WorkItemTrackingInterfaces.WorkItemType[]>;
     getWorkItemTypeFieldsWithReferences(project: string, type: string, expand?: WorkItemTrackingInterfaces.WorkItemTypeFieldsExpandLevel): Promise<WorkItemTrackingInterfaces.WorkItemTypeFieldWithReferences[]>;
@@ -2493,7 +2497,7 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
                 res = await this.rest.get<WorkItemTrackingInterfaces.WorkItemTagDefinition>(url, options);
 
                 let ret = this.formatResponse(res.result,
-                                              null,
+                                              WorkItemTrackingInterfaces.TypeInfo.WorkItemTagDefinition,
                                               false);
 
                 resolve(ret);
@@ -2532,7 +2536,7 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
                 res = await this.rest.get<WorkItemTrackingInterfaces.WorkItemTagDefinition[]>(url, options);
 
                 let ret = this.formatResponse(res.result,
-                                              null,
+                                              WorkItemTrackingInterfaces.TypeInfo.WorkItemTagDefinition,
                                               true);
 
                 resolve(ret);
@@ -2576,7 +2580,7 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
                 res = await this.rest.update<WorkItemTrackingInterfaces.WorkItemTagDefinition>(url, tagData, options);
 
                 let ret = this.formatResponse(res.result,
-                                              null,
+                                              WorkItemTrackingInterfaces.TypeInfo.WorkItemTagDefinition,
                                               false);
 
                 resolve(ret);
@@ -2854,6 +2858,49 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
     }
 
     /**
+     * Creates a temporary query
+     * 
+     * @param {WorkItemTrackingInterfaces.TemporaryQueryRequestModel} postedQuery - The temporary query to create
+     * @param {string} project - Project ID or project name
+     */
+    public async createTempQuery(
+        postedQuery: WorkItemTrackingInterfaces.TemporaryQueryRequestModel,
+        project: string
+        ): Promise<WorkItemTrackingInterfaces.TemporaryQueryResponseModel> {
+
+        return new Promise<WorkItemTrackingInterfaces.TemporaryQueryResponseModel>(async (resolve, reject) => {
+            let routeValues: any = {
+                project: project
+            };
+
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.1",
+                    "wit",
+                    "9f614388-a9f0-4952-ad6c-89756bd8e388",
+                    routeValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<WorkItemTrackingInterfaces.TemporaryQueryResponseModel>;
+                res = await this.rest.create<WorkItemTrackingInterfaces.TemporaryQueryResponseModel>(url, postedQuery, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
+                                              false);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
      * Returns a single update for a work item
      * 
      * @param {number} id
@@ -3004,6 +3051,68 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
 
                 let ret = this.formatResponse(res.result,
                                               WorkItemTrackingInterfaces.TypeInfo.WorkItemQueryResult,
+                                              false);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
+     * Gets the results of the query given the query ID.
+     * 
+     * @param {string} id - The query ID.
+     * @param {TfsCoreInterfaces.TeamContext} teamContext - The team context for the operation
+     * @param {boolean} timePrecision - Whether or not to use time precision.
+     * @param {number} top - The max number of results to return.
+     */
+    public async getQueryResultCount(
+        id: string,
+        teamContext?: TfsCoreInterfaces.TeamContext,
+        timePrecision?: boolean,
+        top?: number
+        ): Promise<number> {
+
+        return new Promise<number>(async (resolve, reject) => {
+            let project = null;
+            let team = null;
+            if (teamContext) {
+                project = teamContext.projectId || teamContext.project;
+                team = teamContext.teamId || teamContext.team;
+            }
+
+            let routeValues: any = {
+                project: project,
+                team: team,
+                id: id
+            };
+
+            let queryValues: any = {
+                timePrecision: timePrecision,
+                '$top': top,
+            };
+            
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.2",
+                    "wit",
+                    "a02355f5-5f8a-4671-8e32-369d23aac83d",
+                    routeValues,
+                    queryValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<number>;
+                res = await this.rest.head<number>(url, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
                                               false);
 
                 resolve(ret);
@@ -3977,6 +4086,49 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
     }
 
     /**
+     * Deletes specified work items and sends them to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently. WARNING: If the destroy parameter is set to true, work items deleted by this command will NOT go to recycle-bin and there is no way to restore/recover them after deletion.
+     * 
+     * @param {WorkItemTrackingInterfaces.WorkItemDeleteBatchRequest} deleteRequest
+     * @param {string} project - Project ID or project name
+     */
+    public async deleteWorkItems(
+        deleteRequest: WorkItemTrackingInterfaces.WorkItemDeleteBatchRequest,
+        project?: string
+        ): Promise<WorkItemTrackingInterfaces.WorkItemDeleteBatch> {
+
+        return new Promise<WorkItemTrackingInterfaces.WorkItemDeleteBatch>(async (resolve, reject) => {
+            let routeValues: any = {
+                project: project
+            };
+
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.1",
+                    "wit",
+                    "8bc57545-27e5-420d-b709-f6e3ebcc1fc1",
+                    routeValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<WorkItemTrackingInterfaces.WorkItemDeleteBatch>;
+                res = await this.rest.create<WorkItemTrackingInterfaces.WorkItemDeleteBatch>(url, deleteRequest, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
+                                              false);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
      * INTERNAL ONLY: It will be used for My account work experience. Get the work item type state color for multiple projects
      * 
      * @param {string[]} projectNames
@@ -4218,6 +4370,47 @@ export class WorkItemTrackingApi extends basem.ClientApiBase implements IWorkIte
 
                 let res: restm.IRestResponse<{ key: string; value: WorkItemTrackingInterfaces.WorkItemTypeColorAndIcon[] }[]>;
                 res = await this.rest.create<{ key: string; value: WorkItemTrackingInterfaces.WorkItemTypeColorAndIcon[] }[]>(url, projectNames, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
+                                              true);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
+     * INTERNAL ONLY Get a list of fields allowed values for all Project's work item types.
+     * 
+     * @param {string} project - Project ID or project name
+     */
+    public async getWorkItemTypeFieldsAllowedValues(
+        project: string
+        ): Promise<WorkItemTrackingInterfaces.WorkItemTypeFieldAlowedValues[]> {
+
+        return new Promise<WorkItemTrackingInterfaces.WorkItemTypeFieldAlowedValues[]>(async (resolve, reject) => {
+            let routeValues: any = {
+                project: project
+            };
+
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.1",
+                    "wit",
+                    "1d4da553-5856-4ca5-a3b3-79e0e8fcc142",
+                    routeValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<WorkItemTrackingInterfaces.WorkItemTypeFieldAlowedValues[]>;
+                res = await this.rest.get<WorkItemTrackingInterfaces.WorkItemTypeFieldAlowedValues[]>(url, options);
 
                 let ret = this.formatResponse(res.result,
                                               null,

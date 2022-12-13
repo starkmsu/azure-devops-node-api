@@ -416,7 +416,7 @@ export interface VssNotificationEvent {
      */
     processDelay?: any;
     /**
-     * Optional: A list of scopes which are are relevant to the event.
+     * Optional: A list of scopes which are relevant to the event.
      */
     scopes?: EventScope[];
     /**

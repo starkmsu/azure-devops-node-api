@@ -572,6 +572,7 @@ export enum ElasticComputeState {
     Deleting = 3,
     Failed = 4,
     Stopped = 5,
+    Reimaging = 6,
 }
 
 /**
@@ -648,6 +649,11 @@ export enum ElasticNodeState {
     DeletingCompute = 10,
     Deleted = 11,
     Lost = 12,
+    ReimagingCompute = 13,
+    RestartingAgent = 14,
+    FailedToStartPendingDelete = 15,
+    FailedToRestartPendingDelete = 16,
+    FailedVMPendingDelete = 17,
 }
 
 /**
@@ -2216,7 +2222,7 @@ export interface TaskAgentPool extends TaskAgentPoolReference {
     owner?: VSSInterfaces.IdentityRef;
     properties?: any;
     /**
-     * Target parallelism.
+     * Target parallelism - Only applies to agent pools that are backed by pool providers. It will be null for regular pools.
      */
     targetSize?: number;
 }
@@ -3093,6 +3099,10 @@ export interface TaskGroupUpdatePropertiesBase {
     comment?: string;
 }
 
+export interface TaskHubIdToken {
+    idToken?: string;
+}
+
 export interface TaskHubLicenseDetails {
     enterpriseUsersCount?: number;
     failedToReachAllProviders?: boolean;
@@ -3662,7 +3672,8 @@ export var TypeInfo = {
             "creating": 2,
             "deleting": 3,
             "failed": 4,
-            "stopped": 5
+            "stopped": 5,
+            "reimaging": 6
         }
     },
     ElasticNode: <any>{
@@ -3683,7 +3694,12 @@ export var TypeInfo = {
             "saved": 9,
             "deletingCompute": 10,
             "deleted": 11,
-            "lost": 12
+            "lost": 12,
+            "reimagingCompute": 13,
+            "restartingAgent": 14,
+            "failedToStartPendingDelete": 15,
+            "failedToRestartPendingDelete": 16,
+            "failedVMPendingDelete": 17
         }
     },
     ElasticPool: <any>{

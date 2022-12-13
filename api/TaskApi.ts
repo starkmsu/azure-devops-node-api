@@ -26,6 +26,7 @@ export interface ITaskApi extends basem.ClientApiBase {
     getAttachments(scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string, type: string): Promise<TaskAgentInterfaces.TaskAttachment[]>;
     appendTimelineRecordFeed(lines: TaskAgentInterfaces.TimelineRecordFeedLinesWrapper, scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string): Promise<void>;
     getLines(scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string, stepId: string, endLine?: number, takeCount?: number, continuationToken?: string): Promise<TaskAgentInterfaces.TimelineRecordFeedLinesWrapper>;
+    createIdToken(claims: { [key: string] : string; }, scopeIdentifier: string, hubName: string, planId: string, jobId: string, serviceConnectionId: string): Promise<TaskAgentInterfaces.TaskHubIdToken>;
     getJobInstance(scopeIdentifier: string, hubName: string, orchestrationId: string): Promise<TaskAgentInterfaces.TaskAgentJob>;
     appendLogContent(customHeaders: any, contentStream: NodeJS.ReadableStream, scopeIdentifier: string, hubName: string, planId: string, logId: number): Promise<TaskAgentInterfaces.TaskLog>;
     associateLog(scopeIdentifier: string, hubName: string, planId: string, logId: number, serializedBlobId: string, lineCount: number): Promise<TaskAgentInterfaces.TaskLog>;
@@ -503,6 +504,66 @@ export class TaskApi extends basem.ClientApiBase implements ITaskApi {
 
                 let res: restm.IRestResponse<TaskAgentInterfaces.TimelineRecordFeedLinesWrapper>;
                 res = await this.rest.get<TaskAgentInterfaces.TimelineRecordFeedLinesWrapper>(url, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
+                                              false);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
+     * @param {{ [key: string] : string; }} claims
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
+     * @param {string} planId
+     * @param {string} jobId
+     * @param {string} serviceConnectionId
+     */
+    public async createIdToken(
+        claims: { [key: string] : string; },
+        scopeIdentifier: string,
+        hubName: string,
+        planId: string,
+        jobId: string,
+        serviceConnectionId: string
+        ): Promise<TaskAgentInterfaces.TaskHubIdToken> {
+        if (serviceConnectionId == null) {
+            throw new TypeError('serviceConnectionId can not be null or undefined');
+        }
+
+        return new Promise<TaskAgentInterfaces.TaskHubIdToken>(async (resolve, reject) => {
+            let routeValues: any = {
+                scopeIdentifier: scopeIdentifier,
+                hubName: hubName,
+                planId: planId,
+                jobId: jobId
+            };
+
+            let queryValues: any = {
+                serviceConnectionId: serviceConnectionId,
+            };
+            
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.1",
+                    "distributedtask",
+                    "69a319f4-28c1-4bfd-93e6-ea0ff5c6f1a2",
+                    routeValues,
+                    queryValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<TaskAgentInterfaces.TaskHubIdToken>;
+                res = await this.rest.create<TaskAgentInterfaces.TaskHubIdToken>(url, claims, options);
 
                 let ret = this.formatResponse(res.result,
                                               null,
