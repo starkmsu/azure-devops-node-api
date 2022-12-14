@@ -1,7 +1,7 @@
 {
-    "name": "azure-devops-node-api",
+    "name": "@starkmsu/azure-devops-node-api",
     "description": "Node client for Azure DevOps and TFS REST APIs",
-    "version": "11.2.0",
+    "version": "11.3.1",
     "main": "./WebApi.js",
     "types": "./WebApi.d.ts",
     "scripts": {
@@ -12,7 +12,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/Microsoft/azure-devops-node-api"
+        "url": "https://github.com/starkmsu/azure-devops-node-api"
     },
     "author": "Microsoft Corporation",
     "contributors": [

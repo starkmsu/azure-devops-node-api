@@ -87,6 +87,8 @@ export interface IBuildApi extends basem.ClientApiBase {
     getRetentionSettings(project: string): Promise<BuildInterfaces.ProjectRetentionSetting>;
     updateRetentionSettings(updateModel: BuildInterfaces.UpdateProjectRetentionSettingModel, project: string): Promise<BuildInterfaces.ProjectRetentionSetting>;
     getDefinitionRevisions(project: string, definitionId: number): Promise<BuildInterfaces.BuildDefinitionRevision[]>;
+    getBuildSettings(project?: string): Promise<BuildInterfaces.BuildSettings>;
+    updateBuildSettings(settings: BuildInterfaces.BuildSettings, project?: string): Promise<BuildInterfaces.BuildSettings>;
     listSourceProviders(project: string): Promise<BuildInterfaces.SourceProviderAttributes[]>;
     updateStage(updateParameters: BuildInterfaces.UpdateStageParameters, buildId: number, stageRefName: string, project?: string): Promise<void>;
     getStatusBadge(project: string, definition: string, branchName?: string, stageName?: string, jobName?: string, configuration?: string, label?: string): Promise<string>;
@@ -3611,6 +3613,90 @@ export class BuildApi extends basem.ClientApiBase implements IBuildApi {
                 let ret = this.formatResponse(res.result,
                                               BuildInterfaces.TypeInfo.BuildDefinitionRevision,
                                               true);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
+     * Gets the build settings.
+     * 
+     * @param {string} project - Project ID or project name
+     */
+    public async getBuildSettings(
+        project?: string
+        ): Promise<BuildInterfaces.BuildSettings> {
+
+        return new Promise<BuildInterfaces.BuildSettings>(async (resolve, reject) => {
+            let routeValues: any = {
+                project: project
+            };
+
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.1",
+                    "build",
+                    "aa8c1c9c-ef8b-474a-b8c4-785c7b191d0d",
+                    routeValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<BuildInterfaces.BuildSettings>;
+                res = await this.rest.get<BuildInterfaces.BuildSettings>(url, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
+                                              false);
+
+                resolve(ret);
+                
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    /**
+     * Updates the build settings.
+     * 
+     * @param {BuildInterfaces.BuildSettings} settings - The new settings.
+     * @param {string} project - Project ID or project name
+     */
+    public async updateBuildSettings(
+        settings: BuildInterfaces.BuildSettings,
+        project?: string
+        ): Promise<BuildInterfaces.BuildSettings> {
+
+        return new Promise<BuildInterfaces.BuildSettings>(async (resolve, reject) => {
+            let routeValues: any = {
+                project: project
+            };
+
+            try {
+                let verData: vsom.ClientVersioningData = await this.vsoClient.getVersioningData(
+                    "7.1-preview.1",
+                    "build",
+                    "aa8c1c9c-ef8b-474a-b8c4-785c7b191d0d",
+                    routeValues);
+
+                let url: string = verData.requestUrl!;
+                let options: restm.IRequestOptions = this.createRequestOptions('application/json', 
+                                                                                verData.apiVersion);
+
+                let res: restm.IRestResponse<BuildInterfaces.BuildSettings>;
+                res = await this.rest.update<BuildInterfaces.BuildSettings>(url, settings, options);
+
+                let ret = this.formatResponse(res.result,
+                                              null,
+                                              false);
 
                 resolve(ret);
                 
